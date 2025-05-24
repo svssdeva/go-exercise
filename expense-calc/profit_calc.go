@@ -17,11 +17,24 @@ func main() {
     fmt.Scan(&taxRate)
 
     ebt := revenue - expenses
-    profit := ebt * (1- taxRate / 100)
+    profit, ratio := calcProfit(ebt, taxRate)
+    outputData(ebt, profit, ratio)
 
-    ratio := ebt/ profit
+}
 
-    fmt.Println(ebt)
-    fmt.Println(profit)
-    fmt.Println(ratio)
+func outputData(ebt, profit, ratio float64) {
+    fmt.Printf("EBT %v\n", ebt)
+    fmt.Printf("Profit %.2f\n", profit)
+    fmt.Println("Ratio", ratio)
+
+    formattedEBT := fmt.Sprintf("EBT %v\n", ebt)
+    formattedProfit := fmt.Sprintf("Profit %.2f\n", profit)
+    fmt.Print(formattedEBT, formattedProfit)
+}
+
+func calcProfit(ebt, taxRate float64) (profit float64, ratio float64) {
+    profit = ebt * (1- taxRate / 100)
+    ratio = ebt/ profit
+    //return profit, ratio
+    return //this also works
 }
