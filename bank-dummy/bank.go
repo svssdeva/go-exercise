@@ -1,16 +1,15 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"os"
-	"strconv"
+
+	"deva.com/bank-dummy/v2/fileops"
 )
 
 const accountBalanceFile = 'balance.txt'
 
 func main() {
-    var accountBalance float64, err = getBalanceFromFile()
+    var accountBalance float64, err = fileops.GetFloatFromFile(accountBalanceFile, 1000.00)
     if err != nil {
         fmt.Println("Error", err);
         //panic("Can't continue, sorry")
@@ -19,29 +18,13 @@ func main() {
 	fmt.Println("\n=== Simple Bank Application ===")
 
 	for {
-	fmt.Println("1. Check Balance")
-	fmt.Println("2. Deposit Money")
-	fmt.Println("3. Withdraw Money")
-	fmt.Println("4. Exit")
+	presentOptions()
 	var choice int
 	fmt.Print("Choose an option (1-4): ")
 	fmt.Scan(&choice);
 
 	fmt.Println("Your choice:", choice)
 
-// 	if (choice == 1) {
-// 	    fmt.Println("Your balance is:", accountBalance);
-// 	} else if (choice == 2) {
-//         add(accountBalance);
-// 	} else if (choice == 3) {
-//         withdraw(accountBalance);
-// 	} else if (choice == 4) {
-// 	    fmt.Println("Exiting...")
-// 	} else {
-// 	    fmt.Println("Wrong choice, Exiting...");
-// 	   // return
-// 	   break;
-// 	}
     switch choice {
         case 1:
     	    fmt.Println("Your balance is:", accountBalance);
@@ -69,7 +52,7 @@ func add(accountBalance float64) {
     } else {
         accountBalance += balanceToAdd;
         fmt.Println("New balance: " accountBalance);
-        writeBalanceToFile(accountBalance);
+        fileops.WriteFloatToFile(accountBalance, accountBalanceFile);
     }
 
 }
@@ -84,23 +67,8 @@ func withdraw(accountBalance float64) {
     } else {
     	accountBalance -= balanceToAdd;
         fmt.Println("New balance: " accountBalance);
-        writeBalanceToFile(accountBalance);
+        fileops.WriteFloatToFile(accountBalance, accountBalanceFile);
     }
-}
-func writeBalanceToFile(balance float64) {
-    balanceText := fmt.Sprint(balance)
-    os.WriteFle(accountBalanceFile, []byte(balanceText), 0644)
 }
 
-func getBalanceFromFile() (float64, error) {
-    data, err := os.ReadFile(accountBalanceFile)
-    if err != nil {
-        return 1000.00, errors.New("Failed to fetch file")
-    }
-    balanceText := string(data)
-    balance, err := strconv.ParseFloat(balanceText, 64)
-    if err != nil {
-        return 1000.00, errors.New("Failed parse balance")
-    }
-    return balance, nil
-}
+
