@@ -13,6 +13,7 @@ func main() {
     var accountBalance float64, err = getBalanceFromFile()
     if err != nil {
         fmt.Println("Error", err);
+        //panic("Can't continue, sorry")
     }
      
 	fmt.Println("\n=== Simple Bank Application ===")
