@@ -18,14 +18,14 @@ type Event struct {
 var events []Event = []Event{}
 
 func (e Event) Save() error {
-	query := `INSERT INTO events (name, description, location, date_time, user_id)
+	query := `INSERT INTO events (name, description, location, dateTime, user_id)
 	 VALUES (?, ?, ?, ?, ?)`
 	stmt, err := db.DB.Prepare(query)
 	if err != nil {
 		panic("Could not prepare statement: " + err.Error())
 	}
 	defer stmt.Close()
-	result, err := stmt.Exec(query, e.Name, e.Description, e.Location, e.DateTime, e.UserID)
+	result, err := stmt.Exec(e.Name, e.Description, e.Location, e.DateTime, e.UserID)
 	if err != nil {
 		panic("Could not execute statement: " + err.Error())
 	}
@@ -35,7 +35,7 @@ func (e Event) Save() error {
 }
 
 func GetAllEvents() ([]Event, error) {
-	query := `SELECT id, name, description, location, date_time, user_id FROM events`
+	query := `SELECT id, name, description, location, dateTime, user_id FROM events`
 	rows, err := db.DB.Query(query)
 	if err != nil {
 		return nil, err
@@ -51,4 +51,41 @@ func GetAllEvents() ([]Event, error) {
 		events = append(events, e)
 	}
 	return events, nil
+}
+
+func GetEventById(id int64) (*Event, error) {
+	query := `SELECT id, name, description, location, dateTime, user_id FROM events WHERE id = ?`
+	row := db.DB.QueryRow(query, id)
+	var e Event
+	err := row.Scan(&e.ID, &e.Name, &e.Description, &e.Location, &e.DateTime, &e.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
+}
+
+func (e Event) UpdateEvent() error {
+	query := `
+			UPDATE events
+	SET name = ?, description = ?, location = ?, dateTime = ?
+	WHERE id = ?
+	`
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(e.Name, e.Description, e.Location, e.DateTime, e.ID)
+	return err
+}
+
+func DeleteEvent(id int64) error {
+	query := `DELETE FROM events WHERE id = ?`
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(id)
+	return err
 }
