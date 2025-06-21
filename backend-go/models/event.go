@@ -79,13 +79,13 @@ func (e Event) UpdateEvent() error {
 	return err
 }
 
-func DeleteEvent(id int64) error {
+func (e Event) DeleteEvent() error {
 	query := `DELETE FROM events WHERE id = ?`
 	stmt, err := db.DB.Prepare(query)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(id)
+	_, err = stmt.Exec(e.ID)
 	return err
 }
