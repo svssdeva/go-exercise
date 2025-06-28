@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"deva.com/backend/v2/models"
-	"deva.com/backend/v2/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,25 +38,15 @@ func getEvents(context *gin.Context) {
 }
 
 func createEvent(context *gin.Context) {
-	token := context.Request.Header.Get("Authorization")
-	if token == "" {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is required"})
-		return
-	}
-	userId, err := utils.ValidateJWT(token)
-	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
 
 	var event models.Event
-	err = context.ShouldBindJSON(&event)
+	err := context.ShouldBindJSON(&event)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	event.UserID = userId // Assuming userId is int64 and matches Event.UserID type
+	event.UserID = context.GetInt64("userId") // Get userId from context
 	err = event.Save()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save event"})
@@ -76,11 +65,20 @@ func updateEvent(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Event ID"})
 		return
 	}
-	_, err = models.GetEventById(eventID)
+
+	userId := context.GetInt64("userId")
+
+	extractedEvent, err := models.GetEventById(eventID)
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
 		return
 	}
+
+	if extractedEvent.UserID != userId {
+		context.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this event"})
+		return
+	}
+
 	var event models.Event
 	err = context.ShouldBindJSON(&event)
 	if err != nil {
@@ -103,8 +101,13 @@ func deleteEvent(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse event id."})
 		return
 	}
-
+	userId := context.GetInt64("userId")
 	event, err := models.GetEventById(eventId)
+
+	if event.UserID != userId {
+		context.JSON(http.StatusForbidden, gin.H{"message": "You are not authorized to delete this event."})
+		return
+	}
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch the event."})

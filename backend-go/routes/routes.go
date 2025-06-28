@@ -1,14 +1,20 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"deva.com/backend/v2/middlewares"
+	"github.com/gin-gonic/gin"
+)
 
 func RegisterRoutes(router *gin.Engine) {
 	// Event routes
-	router.GET("/events", getEvents)
-	router.POST("/events", createEvent)
-	router.GET("/events/:id", getEventById)
-	router.PUT("/events/:id", updateEvent)
-	router.DELETE("/events/:id", deleteEvent)
+
+	authenticated := router.Group("/")
+	authenticated.Use(middlewares.Authenticate)
+	authenticated.GET("/events", getEvents)
+	authenticated.GET("/events/:id", getEventById)
+	authenticated.POST("/events", createEvent)
+	authenticated.PUT("/events/:id", updateEvent)
+	authenticated.DELETE("/events/:id", deleteEvent)
 	// // User routes
 	// router.GET("/users", GetUsers)
 	// router.POST("/users", CreateUser)
