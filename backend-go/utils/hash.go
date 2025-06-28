@@ -10,3 +10,9 @@ func HashPassword(password string) (string, error) {
 	}
 	return string(bytes), nil
 }
+
+func CheckPasswordHash(password, hash string) bool {
+	// In a real application, you would use a library like bcrypt to check the password hash
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}

@@ -15,7 +15,7 @@ func RegisterRoutes(router *gin.Engine) {
 	// router.GET("/users/:id", GetUserById)
 
 	// // Authentication routes
-	// router.POST("/login", Login)
+	router.POST("/login", login)
 	router.POST("/register", register)
 
 	// Additional routes can be added here

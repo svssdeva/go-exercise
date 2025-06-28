@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"deva.com/backend/v2/models"
+	"deva.com/backend/v2/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,14 +39,25 @@ func getEvents(context *gin.Context) {
 }
 
 func createEvent(context *gin.Context) {
+	token := context.Request.Header.Get("Authorization")
+	if token == "" {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is required"})
+		return
+	}
+	userId, err := utils.ValidateJWT(token)
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
 	var event models.Event
-	err := context.ShouldBindJSON(&event)
+	err = context.ShouldBindJSON(&event)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	event.ID = 1     // Simple ID assignment logic
-	event.UserID = 1 // Assuming a static user ID for simplicity
+
+	event.UserID = userId // Assuming userId is int64 and matches Event.UserID type
 	err = event.Save()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save event"})

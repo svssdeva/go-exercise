@@ -1,6 +1,9 @@
 package models
 
 import (
+	"database/sql"
+	"errors"
+
 	"deva.com/backend/v2/db"
 	"deva.com/backend/v2/utils"
 )
@@ -30,4 +33,26 @@ INSERT INTO users (name, email, password) VALUES (?, ?, ?)`
 	id, errId := result.LastInsertId()
 	u.ID = id
 	return errId
+}
+
+func (u *User) ValidateCredentials() error {
+	query := `SELECT id, password FROM users WHERE email = ?`
+	dbRow := db.DB.QueryRow(query, u.Email)
+
+	var retrievedID int64
+	var retrievedPassword string
+	err := dbRow.Scan(&retrievedID, &retrievedPassword)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("user not found")
+		}
+		return errors.New("could not retrieve user: " + err.Error())
+	}
+
+	isValid := utils.CheckPasswordHash(u.Password, retrievedPassword)
+	if !isValid {
+		return errors.New("invalid password")
+	}
+
+	return nil
 }
